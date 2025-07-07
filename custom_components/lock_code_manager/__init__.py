@@ -86,9 +86,10 @@ async def async_setup(hass: HomeAssistant, config: Config) -> bool:
     ])
     _LOGGER.debug("Exposed strategy module at %s", STRATEGY_PATH)
 
-    resources: ResourceStorageCollection | ResourceYAMLCollection
+    # Get resources from lovelace data properly
     lovelace_data = hass.data.get(LL_DOMAIN, {})
-    if resources := getattr(lovelace_data, "resources", None):
+    resources: ResourceStorageCollection | ResourceYAMLCollection = getattr(lovelace_data, "resources", None)
+    if resources:
         # Load resources if needed
         if not resources.loaded:
             await resources.async_load()
@@ -304,9 +305,10 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
         CONF_LOCKS: {},
         COORDINATORS: {},
     }:
-        resources: ResourceStorageCollection | ResourceYAMLCollection
+        # Get resources from lovelace data properly
         lovelace_data = hass.data.get(LL_DOMAIN, {})
-        if resources := getattr(lovelace_data, "resources", None):
+        resources: ResourceStorageCollection | ResourceYAMLCollection = getattr(lovelace_data, "resources", None)
+        if resources:
             if hass_data["resources"]:
                 try:
                     resource_id = next(
