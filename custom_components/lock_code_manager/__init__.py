@@ -30,14 +30,15 @@ from homeassistant.const import (
     CONF_URL,
     EVENT_HOMEASSISTANT_STARTED,
 )
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import (
-    Config,
     CoreState,
     Event,
     HomeAssistant,
     ServiceCall,
     callback,
 )
+from homeassistant.core_config import Config
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import (
     config_validation as cv,
@@ -76,9 +77,13 @@ async def async_setup(hass: HomeAssistant, config: Config) -> bool:
     """Set up integration."""
     hass.data.setdefault(DOMAIN, {CONF_LOCKS: {}, COORDINATORS: {}, "resources": False})
     # Expose strategy javascript
-    hass.http.register_static_path(
-        STRATEGY_PATH, Path(__file__).parent / "www" / STRATEGY_FILENAME
-    )
+    await hass.http.async_register_static_paths([
+        StaticPathConfig(
+            STRATEGY_PATH, 
+            Path(__file__).parent / "www" / STRATEGY_FILENAME, 
+            True
+        )
+    ])
     _LOGGER.debug("Exposed strategy module at %s", STRATEGY_PATH)
 
     resources: ResourceStorageCollection | ResourceYAMLCollection
