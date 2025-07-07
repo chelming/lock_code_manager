@@ -276,12 +276,13 @@ async def async_unload_lock(
                 DOMAIN, include_disabled=False, include_ignore=False
             )
         ):
-            coordinator: LockUsercodeUpdateCoordinator = hass_data[COORDINATORS].pop(
-                _lock_entity_id
-            )
-            await coordinator.async_shutdown()
+            coordinator = hass_data[COORDINATORS].get(_lock_entity_id)
+            if coordinator:
+                hass_data[COORDINATORS].pop(_lock_entity_id)
+                await coordinator.async_shutdown()
 
-        hass_data[entry_id][COORDINATORS].pop(_lock_entity_id)
+        if _lock_entity_id in hass_data[entry_id][COORDINATORS]:
+            hass_data[entry_id][COORDINATORS].pop(_lock_entity_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:

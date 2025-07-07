@@ -307,9 +307,8 @@ class LockCodeManagerFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 class LockCodeManagerOptionsFlow(config_entries.OptionsFlow):
     """Options flow for Lock Code Manager."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry):
-        """Initialize."""
-        self.config_entry = config_entry
+    # The config_entry is automatically provided by Home Assistant
+    # No need to manually set it in __init__
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -331,7 +330,7 @@ class LockCodeManagerOptionsFlow(config_entries.OptionsFlow):
                     self.hass,
                     user_input[CONF_LOCKS],
                     user_input[CONF_SLOTS],
-                    self.config_entry,
+                    self.handler.config_entry,
                 )
                 errors.update(additional_errors)
                 description_placeholders.update(additional_placeholders)
@@ -341,7 +340,7 @@ class LockCodeManagerOptionsFlow(config_entries.OptionsFlow):
 
         def _get_default(key: str) -> Any:
             """Get default value."""
-            return user_input.get(key, get_entry_data(self.config_entry, key, {}))
+            return user_input.get(key, get_entry_data(self.handler.config_entry, key, {}))
 
         return self.async_show_form(
             step_id="init",
