@@ -17,12 +17,12 @@ export interface LockCodeManagerDashboardStrategyConfig extends LockCodeManagerS
 
 export interface SlotMapping {
     calendarEntityId: string | null | undefined;
-    codeEventEntity: LockCodeManagerEntityEntry | undefined;
+    codeEventEntity?: LockCodeManagerEntityEntry | undefined;
     codeSensorEntities: LockCodeManagerEntityEntry[];
     conditionEntities: LockCodeManagerEntityEntry[];
     inSyncEntities: LockCodeManagerEntityEntry[];
     mainEntities: LockCodeManagerEntityEntry[];
-    pinActiveEntity: LockCodeManagerEntityEntry | undefined;
+    pinActiveEntity?: LockCodeManagerEntityEntry | undefined;
     slotNum: number;
 }
 
