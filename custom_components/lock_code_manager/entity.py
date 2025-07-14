@@ -287,9 +287,33 @@ class BaseLockCodeManagerCodeSlotPerLockEntity(BaseLockCodeManagerEntity):
                 connections=lock.device_entry.connections,
                 identifiers=lock.device_entry.identifiers,
             )
+            _LOGGER.debug(
+                "%s (%s): Lock %s has device entry with identifiers: %s, connections: %s",
+                config_entry.entry_id,
+                config_entry.title,
+                lock.lock.entity_id,
+                lock.device_entry.identifiers,
+                lock.device_entry.connections
+            )
+        else:
+            _LOGGER.warning(
+                "%s (%s): Lock %s has no device entry",
+                config_entry.entry_id,
+                config_entry.title,
+                lock.lock.entity_id
+            )
 
         self._attr_unique_id = (
             f"{self.base_unique_id}|{slot_num}|{self.key}|{lock.lock.entity_id}"
+        )
+        _LOGGER.debug(
+            "%s (%s): Created entity for lock %s, slot %s, key %s, unique_id: %s",
+            config_entry.entry_id,
+            config_entry.title,
+            lock.lock.entity_id,
+            slot_num,
+            key,
+            self._attr_unique_id
         )
 
     @callback

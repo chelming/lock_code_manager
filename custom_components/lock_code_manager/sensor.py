@@ -33,17 +33,46 @@ async def async_setup_entry(
         lock: BaseLock, slot_num: int, ent_reg: er.EntityRegistry
     ) -> None:
         """Add code slot sensor entities for slot."""
-        coordinator: LockUsercodeUpdateCoordinator = hass.data[DOMAIN][
-            config_entry.entry_id
-        ][COORDINATORS][lock.lock.entity_id]
-        async_add_entities(
-            [
-                LockCodeManagerCodeSlotSensorEntity(
-                    hass, ent_reg, config_entry, lock, coordinator, slot_num
-                )
-            ],
-            True,
+        _LOGGER.debug(
+            "%s (%s): Adding code slot sensor entities for lock %s, slot %s",
+            config_entry.entry_id,
+            config_entry.title,
+            lock.lock.entity_id,
+            slot_num
         )
+        try:
+            coordinator: LockUsercodeUpdateCoordinator = hass.data[DOMAIN][
+                config_entry.entry_id
+            ][COORDINATORS][lock.lock.entity_id]
+            _LOGGER.debug(
+                "%s (%s): Found coordinator for lock %s in sensor setup, proceeding to create entities",
+                config_entry.entry_id,
+                config_entry.title,
+                lock.lock.entity_id
+            )
+        except KeyError as err:
+            _LOGGER.warning(
+                "%s (%s): Can't create code slot sensor entities because coordinator doesn't "
+                "exist yet for lock %s: %s",
+                config_entry.entry_id,
+                config_entry.title,
+                lock.lock.entity_id,
+                str(err)
+            )
+            return
+            
+        entity = LockCodeManagerCodeSlotSensorEntity(
+            hass, ent_reg, config_entry, lock, coordinator, slot_num
+        )
+        _LOGGER.debug(
+            "%s (%s): Created code slot sensor entity: %s, unique_id: %s",
+            config_entry.entry_id,
+            config_entry.title,
+            entity.__class__.__name__,
+            entity.unique_id
+        )
+        
+        async_add_entities([entity], True)
 
     config_entry.async_on_unload(
         async_dispatcher_connect(

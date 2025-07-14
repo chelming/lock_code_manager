@@ -78,9 +78,16 @@ class ZWaveJSLock(BaseLock):
     @property
     def node(self) -> Node:
         """Return ZWave JS node."""
-        return async_get_node_from_entity_id(
+        _LOGGER.debug(
+            "Getting Z-Wave JS node for lock %s (entity_id: %s)",
+            self.lock.unique_id,
+            self.lock.entity_id,
+        )
+        node = async_get_node_from_entity_id(
             self.hass, self.lock.entity_id, self.ent_reg
         )
+        _LOGGER.debug("Node for %s: %s", self.lock.entity_id, node)
+        return node
 
     @callback
     def _zwave_js_event_filter(self, event_data: dict[str, Any]) -> bool:
@@ -199,16 +206,33 @@ class ZWaveJSLock(BaseLock):
 
     async def async_get_usercodes(self) -> dict[int, int | str]:
         """Get dictionary of code slots and usercodes."""
-        code_slots: Iterable[int] = (
-            int(code_slot)
-            for entry in self.hass.config_entries.async_entries(DOMAIN)
-            for code_slot in get_entry_data(entry, CONF_SLOTS, {})
-            if self.lock.entity_id not in get_entry_data(entry, CONF_LOCKS, [])
-        )
+        _LOGGER.debug("Getting usercodes for lock %s", self.lock.entity_id)
+        
+        entries = self.hass.config_entries.async_entries(DOMAIN)
+        _LOGGER.debug("Found %d Lock Code Manager config entries", len(entries))
+        
+        code_slots: set[int] = set()
+        for entry in entries:
+            slots = get_entry_data(entry, CONF_SLOTS, {})
+            locks = get_entry_data(entry, CONF_LOCKS, [])
+            _LOGGER.debug(
+                "Config entry %s has %d slots and %d locks (our lock in list: %s)",
+                entry.entry_id,
+                len(slots),
+                len(locks),
+                self.lock.entity_id in locks
+            )
+            if self.lock.entity_id in locks:
+                for slot_num in slots:
+                    code_slots.add(int(slot_num))
+                    
+        _LOGGER.debug("Code slots for lock %s: %s", self.lock.entity_id, sorted(list(code_slots)))
+        
         data: dict[int, int | str] = {}
         code_slot = 1
 
         if not await self.async_is_connection_up():
+            _LOGGER.warning("Lock %s is not connected", self.lock.entity_id)
             raise LockDisconnected
 
         try:

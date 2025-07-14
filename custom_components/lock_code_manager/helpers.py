@@ -27,8 +27,37 @@ def async_create_lock_instance(
 ) -> BaseLock:
     """Generate lock from config entry."""
     lock_entry = ent_reg.async_get(lock_entity_id)
+    _LOGGER.debug(
+        "%s (%s): Creating lock instance for entity %s, entry found: %s",
+        config_entry.entry_id,
+        config_entry.title,
+        lock_entity_id,
+        lock_entry is not None
+    )
+    
     assert lock_entry
     lock_config_entry = hass.config_entries.async_get_entry(lock_entry.config_entry_id)
+    
+    _LOGGER.debug(
+        "%s (%s): Lock entry platform: %s, unique_id: %s, entity_id: %s",
+        config_entry.entry_id,
+        config_entry.title,
+        lock_entry.platform,
+        lock_entry.unique_id,
+        lock_entry.entity_id
+    )
+    
+    if lock_entry.platform not in INTEGRATIONS_CLASS_MAP:
+        _LOGGER.error(
+            "%s (%s): Unsupported platform %s for lock %s (supported: %s)",
+            config_entry.entry_id,
+            config_entry.title,
+            lock_entry.platform,
+            lock_entry.entity_id,
+            ", ".join(INTEGRATIONS_CLASS_MAP.keys())
+        )
+        raise ValueError(f"Unsupported platform {lock_entry.platform}")
+    
     lock = INTEGRATIONS_CLASS_MAP[lock_entry.platform](
         hass, dev_reg, ent_reg, lock_config_entry, lock_entry
     )
